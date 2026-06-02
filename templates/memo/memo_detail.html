@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MoodMemo | 상세</title>
+</head>
+<body style="background:#f7f5f1;">
+  <div style="max-width:980px;margin:0 auto;padding:24px;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin:0 0 18px;">
+      <div>
+        <h1 style="margin:0;">MoodMemo</h1>
+        <div style="color:#666; font-size:13px; margin-top:4px;">
+          {{ request.user.username }} 님
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'logout' %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit"
+          style="padding:8px 12px;border-radius:12px;border:1px solid #ddd;background:#fff;cursor:pointer;">
+          로그아웃
+        </button>
+      </form>
+    </div>
+
+    <h2 style="margin:0 0 14px;">메모 상세</h2>
+
+    <div style="color:#666;font-size:13px;margin-bottom:10px;">
+      📅 작성: {{ memo.created_at|date:"Y-m-d H:i" }} / 수정: {{ memo.updated_at|date:"Y-m-d H:i" }}
+    </div>
+
+    <div style="background:#fff;border:1px solid #eee;border-radius:14px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.04);white-space:pre-wrap;">
+      {{ memo.content }}
+    </div>
+
+ <div style="margin-top:18px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+  <a href="{% url 'memo:list' %}" style="text-decoration:none; color:#333;">← 목록</a>
+
+  <a href="{% url 'memo:update' memo.id %}"
+     style="padding:8px 14px; border:1px solid #4a7; background:#fff; color:#4a7; border-radius:10px; text-decoration:none;">
+     수정
+  </a>
+
+  <form method="post" action="{% url 'memo:delete' memo.id %}" style="margin:0;">
+    {% csrf_token %}
+    <button type="submit"
+            onclick="return confirm('정말 삭제할까요?');"
+            style="padding:8px 14px; border:1px solid #e33; background:#fff; color:#e33; border-radius:10px; cursor:pointer;">
+      삭제
+    </button>
+  </form>
+</div>
+
+
+  </div>
+</body>
+</html>

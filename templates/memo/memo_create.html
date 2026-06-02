@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MoodMemo | 메모 작성</title>
+
+  <style>
+    body { background:#f7f5f1; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .wrap{
+      max-width: 880px;
+      margin: 40px auto;
+      padding: 28px;
+      background:#fff;
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.05);
+    }
+    h1{ margin:0 0 18px; font-size:28px; }
+    .info{
+      background:#eef3ee;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color:#4d5a43;
+      margin-bottom: 22px;
+      display:flex; align-items:center; gap:8px;
+    }
+
+    .label{ font-weight: 800; margin: 18px 0 10px; }
+    .req{ color:#d65; }
+
+    /* 카테고리 카드 */
+    .cat-grid{
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0,1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .cat-radio{ display:none; }
+    .cat-card{
+      border:1px solid #e6e0d7;
+      border-radius: 16px;
+      padding: 18px 10px;
+      text-align:center;
+      cursor:pointer;
+      background:#fff;
+      transition: all .18s ease;
+    }
+    .cat-card:hover{
+      transform: translateY(-1px);
+      border-color:#bfcbbf;
+    }
+    .cat-radio:checked + .cat-card{
+      border:2px solid #8fa18f;
+      background:#f3f7f3;
+      box-shadow: 0 0 0 4px rgba(143,161,143,.14);
+    }
+    .cat-icon{
+      font-size: 30px;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+    .cat-name{
+      font-size: 13px;
+      font-weight: 700;
+      color:#333;
+    }
+
+    /* 본문 */
+    textarea{
+      width:100%;
+      min-height: 220px;
+      border:1px solid #e6e0d7;
+      border-radius: 16px;
+      padding: 18px;
+      font-size: 15px;
+      outline:none;
+      resize: vertical;
+      box-sizing: border-box;
+      background:#fff;
+    }
+    textarea::placeholder{ color:#a7a7a7; }
+    .helper{
+      color:#9a9a9a;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .count{
+      text-align:right;
+      font-size: 12px;
+      color:#9a9a9a;
+      margin-top: 6px;
+    }
+
+    /* 버튼 */
+    .actions{
+      margin-top: 22px;
+      display:flex;
+      gap: 14px;
+    }
+    .btn{
+      flex:1;
+      padding: 16px 14px;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor:pointer;
+      border:1px solid #e6e0d7;
+      background:#fff;
+      text-align:center;
+      text-decoration:none;
+      color:#333;
+    }
+    .btn-save{
+      background:#8fa18f;
+      border-color:#8fa18f;
+      color:#fff;
+    }
+    .btn-save:hover{ filter: brightness(0.98); }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>메모 작성</h1>
+
+    <div class="info">ℹ️ 작성일은 저장 시 자동으로 기록됩니다</div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- 카테고리 선택 -->
+      <div class="label"><span class="req">*</span> 메모 유형 선택</div>
+
+      <div class="cat-grid">
+        {% for c in categories %}
+          <input
+            class="cat-radio"
+            type="radio"
+            name="category"
+            id="cat-{{ c.id }}"
+            value="{{ c.id }}"
+            required
+            {% if form.category.value|stringformat:"s" == c.id|stringformat:"s" %}checked{% endif %}
+          />
+          <label class="cat-card" for="cat-{{ c.id }}">
+            <div class="cat-icon">{{ c.icon|default:"📌" }}</div>
+            <div class="cat-name">{{ c.name }}</div>
+          </label>
+        {% endfor %}
+      </div>
+
+      <!-- 본문 -->
+      <div class="label"><span class="req">*</span> 본문 입력</div>
+
+      {{ form.content }}
+
+      <div class="helper">메모는 나만의 공간입니다. 편하게 작성하세요 ✨</div>
+      <div class="count"><span id="cnt">0</span> / 5,000자</div>
+
+      <div class="actions">
+        <a class="btn" href="{% url 'memo:list' %}">취소</a>
+        <button class="btn btn-save" type="submit">저장</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // 글자수 카운트 (선택)
+    const textarea = document.querySelector("textarea");
+    const cnt = document.getElementById("cnt");
+    const update = () => { cnt.textContent = (textarea?.value || "").length; };
+    if (textarea) {
+      update();
+      textarea.addEventListener("input", update);
+    }
+  </script>
+</body>
+</html>

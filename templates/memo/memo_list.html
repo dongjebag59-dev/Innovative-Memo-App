@@ -1,0 +1,216 @@
+{% load static %}
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MoodMemo | 목록</title>
+
+  <style>
+    body { background:#f7f5f1; }
+
+    .memo-card{
+      background:#fff;
+      border:1px solid #ece6de;
+      border-radius:18px;
+      padding:16px 18px;
+      box-shadow:0 6px 20px rgba(0,0,0,.04);
+      margin:0 auto 16px;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .memo-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .memo-top .left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#f1f6ef;
+      color:#4d5a43;
+      font-weight:700;
+      font-size:12px;
+      border:1px solid #d9e4d6;
+    }
+
+    .date{
+      color:#6f6f6f;
+      font-size:13px;
+    }
+
+    .preview{
+      margin-top:10px;
+      color:#3e3e3e;
+      line-height:1.5;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+      min-height:3em;
+    }
+
+    .detail-link{
+      text-decoration:none;
+      font-weight:800;
+      color:#7a7a7a;
+      font-size:18px;
+    }
+    .detail-link:hover{ color:#333; }
+
+    /* ✅ 카테고리 필터 pill */
+    .pill{
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid #ddd;
+      text-decoration:none;
+      font-weight:700;
+      color:#555;
+      background:#fff;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .pill-active{
+      background:#8fa18f;
+      color:#fff;
+      border-color:#8fa18f;
+    }
+
+    /* ✅ 태그 */
+    .tags{
+      margin-top:10px;
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      min-height:28px;
+    }
+    .tag{
+      font-size:12px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#f1f6ef;
+      border:1px solid #d9e4d6;
+      color:#4d5a43;
+      font-weight:700;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="max-width:980px;margin:0 auto;padding:24px;">
+
+    <h1 style="margin:0 0 18px;">MoodMemo</h1>
+
+    <!-- 상단 유저/로그아웃 -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 14px;">
+      <div style="color:#666; font-size:13px;">
+        {{ request.user.username }} 님
+      </div>
+
+      <form method="post" action="{% url 'logout' %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit"
+          style="padding:8px 12px;border-radius:12px;border:1px solid #ddd;background:#fff;cursor:pointer;">
+          로그아웃
+        </button>
+      </form>
+    </div>
+
+    <!-- 검색 -->
+    <form method="get" action="{% url 'memo:list' %}" style="display:flex;gap:10px;align-items:center;">
+      <input name="q" value="{{ q }}" placeholder="메모 검색...(내용)"
+             style="flex:1;padding:14px;border-radius:12px;border:1px solid #ddd;">
+
+      {% if selected_category %}
+        <input type="hidden" name="category" value="{{ selected_category }}">
+      {% endif %}
+
+      <select name="sort"
+              onchange="this.form.submit()"
+              style="padding:12px 14px;border-radius:12px;border:1px solid #ddd;">
+        <option value="latest" {% if sort == "latest" %}selected{% endif %}>최신순</option>
+        <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>오래된순</option>
+      </select>
+
+      <button type="submit"
+              style="padding:12px 16px;border-radius:12px;border:none;background:#8fa18f;color:white;">
+        검색
+      </button>
+    </form>
+
+    <!-- 카테고리 필터 -->
+    <div style="margin:12px 0 18px; display:flex; gap:10px; flex-wrap:wrap;">
+      <a href="{% url 'memo:list' %}?q={{ q }}&sort={{ sort }}"
+         class="pill {% if not selected_category %}pill-active{% endif %}">
+        전체
+      </a>
+
+      {% for c in categories %}
+        <a href="{% url 'memo:list' %}?category={{ c.id }}&q={{ q }}&sort={{ sort }}"
+           class="pill {% if selected_category == c.id|stringformat:'s' %}pill-active{% endif %}">
+          {{ c.icon|default:"📌" }} {{ c.name }}
+        </a>
+      {% endfor %}
+    </div>
+
+    <!-- 새 메모 작성 버튼 -->
+    <div style="margin:18px 0;">
+      <a href="{% url 'memo:create' %}"
+         style="display:block;text-align:center;padding:14px;border-radius:12px;background:#8fa18f;color:#fff;text-decoration:none;font-weight:600;">
+        + 새 메모 작성
+      </a>
+    </div>
+
+    <!-- 리스트 -->
+    {% for memo in memos %}
+      <div class="memo-card">
+
+        <div class="memo-top">
+          <div class="left">
+            {% if memo.category %}
+              <span class="badge">
+                {{ memo.category.icon|default:"📌" }} {{ memo.category.name }}
+              </span>
+            {% endif %}
+            <span class="date">📅 {{ memo.created_at|date:"Y-m-d" }}</span>
+          </div>
+
+          <a class="detail-link" href="{% url 'memo:detail' memo.id %}">→</a>
+        </div>
+
+        <div class="preview">
+          {{ memo.content|truncatechars:90 }}
+        </div>
+
+        {% with kws=memo.keywords_list %}
+          {% if kws %}
+            <div class="tags">
+              {% for kw in kws %}
+                <span class="tag">#{{ kw }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+      </div>
+    {% empty %}
+      <div class="memo-card">아직 메모가 없어요. + 새 메모 작성해보자!</div>
+    {% endfor %}
+
+  </div>
+</body>
+</html>

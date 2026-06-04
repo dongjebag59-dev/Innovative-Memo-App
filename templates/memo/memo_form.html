@@ -1,102 +1,103 @@
-﻿<!DOCTYPE html>
-<html lang="ko">
-   
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>메모 작성 - FOCUS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% extends "base.html" %}
 
+{% block title %}{% if is_update %}메모 수정{% else %}새 메모 작성{% endif %} | Focus Memo{% endblock %}
+
+{% block extra_css %}
 <style>
-  .category-grid{
-    display:flex;
-    gap:14px;
-    flex-wrap:wrap;
-    margin-top:10px;
+  .category-grid { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
+  .cat-item {
+    min-width:110px; border:1.5px solid var(--line); border-radius:14px;
+    padding:14px 12px; background:#fff; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    transition:.15s; position:relative; text-align:center;
   }
-  .category-item{
-  width:140px;
-  border:1px solid #e6dfd6;
-  border-radius:14px;
-  padding:16px 14px;
-  background:#fff;
-  cursor:pointer;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:10px;
-  transition:.15s ease;
-  position: relative;
-}
-
-.category-item input{ display:none; }
-
-.category-item:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0,0,0,.06);
-}
-
-/* ✅ 선택된 카드: 진짜 'active' 느낌 */
-.category-item:has(input:checked){
-  border-color:#9aaa8a;
-  background:#f1f6ef;              /* 연한 초록 배경 */
-  box-shadow: 0 0 0 4px rgba(154,170,138,.18);
-}
-
-/* ✅ 선택 표시(체크 느낌) - 오른쪽 위 점 */
-.category-item:has(input:checked)::after{
-  content:"";
-  position:absolute;
-  top:10px;
-  right:10px;
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:#9aaa8a;
-}
-
+  .cat-item input { display:none; }
+  .cat-item .icon { font-size:26px; line-height:1; }
+  .cat-item .name { font-size:13px; font-weight:700; color:var(--text); }
+  .cat-item:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
+  .cat-item:has(input:checked) {
+    border-color:var(--brand); background:var(--brand-light);
+    box-shadow:0 0 0 3px rgba(143,161,143,.2);
+  }
+  .cat-item:has(input:checked)::after {
+    content:"✓"; position:absolute; top:8px; right:10px;
+    font-size:12px; color:var(--brand-d); font-weight:900;
+  }
+  .check-row {
+    display:flex; align-items:center; gap:10px; padding:12px 14px;
+    border:1px solid var(--line); border-radius:var(--r-sm);
+    background:var(--input-bg); cursor:pointer;
+  }
+  .check-row input[type=checkbox] { width:18px; height:18px; accent-color:var(--brand); cursor:pointer; }
+  .check-row label { cursor:pointer; font-size:14px; font-weight:600; flex:1; }
+  .check-row .hint { font-size:12px; color:var(--muted); }
+  @media(max-width:500px) {
+    .cat-item { min-width:90px; padding:12px 8px; }
+    .cat-item .icon { font-size:22px; }
+  }
 </style>
-    
-</head>
-<body>
-    <div class="container mt-5">
-        <h2 class="mb-4">
-            {% if form.instance.pk %}
-                메모 수정
-            {% else %}
-                메모 작성
-            {% endif %}
-        </h2>
+{% endblock %}
 
-        <form method="POST">
-    {% csrf_token %}
+{% block content %}
+<h2 class="page-title">{% if is_update %}메모 수정{% else %}새 메모 작성{% endif %}</h2>
 
-  <!-- 카테고리(아이콘 버튼형) -->
-<div class="mb-3">
-  <label class="form-label">* 메모 유형 선택</label>
+<form method="POST">
+  {% csrf_token %}
 
-  <div class="category-grid">
-    {% for category in categories %}
-      <label class="category-item">
+  <!-- 카테고리 -->
+  <div class="form-group">
+    <div class="form-label">메모 유형</div>
+    <div class="category-grid">
+      {% for category in categories %}
+      <label class="cat-item">
         <input type="radio" name="category" value="{{ category.id }}"
                {% if form.instance.category_id == category.id %}checked{% endif %}>
         <span class="icon">{{ category.icon }}</span>
         <span class="name">{{ category.name }}</span>
       </label>
-    {% endfor %}
+      {% endfor %}
+    </div>
   </div>
-</div>
 
+  <!-- 본문 -->
+  <div class="form-group">
+    <label class="form-label">메모 내용 <span style="color:var(--danger)">*</span></label>
+    {{ form.content }}
+    {% if form.content.errors %}
+      <div style="color:var(--danger);font-size:13px;margin-top:6px;">{{ form.content.errors.0 }}</div>
+    {% endif %}
+  </div>
 
-    <!-- 메모 내용 -->
-    <div class="mb-3">
-        <label class="form-label">메모 내용</label>
-        {{ form.content }}
+  <!-- 태그 -->
+  <div class="form-group">
+    <label class="form-label">태그 <span style="color:var(--muted);font-weight:400;">(선택)</span></label>
+    {{ form.user_tags }}
+    <div class="form-hint">예: #비밀번호 #카카오 #은행 — 스페이스로 구분, 검색 시 활용됩니다</div>
+  </div>
+
+  <!-- 옵션 -->
+  <div class="form-group">
+    <div class="form-label">옵션</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="check-row">
+        {{ form.is_pinned }}
+        <label for="{{ form.is_pinned.id_for_label }}">📌 상단 고정</label>
+        <span class="hint">목록 맨 위에 고정</span>
+      </div>
+      <div class="check-row">
+        {{ form.is_secret }}
+        <label for="{{ form.is_secret.id_for_label }}">🔒 내용 잠금</label>
+        <span class="hint">목록에서 내용 가림</span>
+      </div>
     </div>
+  </div>
 
-    <button type="submit" class="btn btn-success">저장</button>
-        </form>
-
-    </div>
-</body>
-</html>
+  <!-- 제출 -->
+  <div style="display:flex;gap:12px;align-items:center;margin-top:8px;">
+    <button type="submit" class="btn btn-primary" style="padding:13px 28px;">
+      {% if is_update %}수정 완료{% else %}메모 저장{% endif %}
+    </button>
+    <a href="{% url 'memo:list' %}" class="btn btn-ghost">취소</a>
+  </div>
+</form>
+{% endblock %}

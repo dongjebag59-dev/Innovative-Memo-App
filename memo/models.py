@@ -68,8 +68,10 @@ class Memo(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="작성일")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="수정일")
 
-    # ✅ 키워드 저장(콤마 문자열)
-    keywords = models.CharField(max_length=255, blank=True, default="", verbose_name="키워드")
+    keywords = models.CharField(max_length=255, blank=True, default="", verbose_name="자동 키워드")
+    user_tags = models.CharField(max_length=255, blank=True, default="", verbose_name="사용자 태그")
+    is_pinned = models.BooleanField(default=False, verbose_name="상단 고정")
+    is_secret = models.BooleanField(default=False, verbose_name="내용 잠금")
 
     def save(self, *args, **kwargs):
         if self.content:
@@ -82,10 +84,15 @@ class Memo(models.Model):
 
     @property
     def keywords_list(self):
-        """템플릿에서 쉽게 쓰려고 만든 helper"""
         if not self.keywords:
             return []
         return [k.strip() for k in self.keywords.split(",") if k.strip()]
+
+    @property
+    def user_tags_list(self):
+        if not self.user_tags:
+            return []
+        return [t.strip().lstrip("#") for t in self.user_tags.split() if t.strip()]
 
     class Meta:
         ordering = ["-created_at"]

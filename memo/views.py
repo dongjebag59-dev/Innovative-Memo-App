@@ -1,4 +1,3 @@
-# memo/views.py
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -8,6 +7,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import MemoForm
 from .models import Category, Memo
+from .synonyms import expand_query
 
 
 @login_required
@@ -19,15 +19,23 @@ def memo_list(request):
     memos = Memo.objects.filter(author=request.user)
 
     if q:
-        memos = memos.filter(Q(content__icontains=q) | Q(keywords__icontains=q))
+        terms = expand_query(q)
+        q_filter = Q()
+        for term in terms:
+            q_filter |= (
+                Q(content__icontains=term) |
+                Q(keywords__icontains=term) |
+                Q(user_tags__icontains=term)
+            )
+        memos = memos.filter(q_filter)
 
     if selected_category and selected_category.isdigit():
         memos = memos.filter(category_id=int(selected_category))
 
     if sort == "oldest":
-        memos = memos.order_by("created_at")
+        memos = memos.order_by("-is_pinned", "created_at")
     else:
-        memos = memos.order_by("-created_at")
+        memos = memos.order_by("-is_pinned", "-created_at")
 
     categories = Category.objects.order_by("order")
 
@@ -66,15 +74,11 @@ def memo_create(request):
         form = MemoForm()
 
     categories = Category.objects.order_by("order")
-    return render(
-        request,
-        "memo/memo_form.html",
-        {
-            "form": form,
-            "is_update": False,
-            "categories": categories,
-        },
-    )
+    return render(request, "memo/memo_form.html", {
+        "form": form,
+        "is_update": False,
+        "categories": categories,
+    })
 
 
 @login_required
@@ -92,15 +96,11 @@ def memo_update(request, memo_id):
         form = MemoForm(instance=memo)
 
     categories = Category.objects.order_by("order")
-    return render(
-        request,
-        "memo/memo_form.html",
-        {
-            "form": form,
-            "is_update": True,
-            "categories": categories,
-        },
-    )
+    return render(request, "memo/memo_form.html", {
+        "form": form,
+        "is_update": True,
+        "categories": categories,
+    })
 
 
 @require_POST
@@ -110,3 +110,13 @@ def memo_delete(request, memo_id):
     memo.delete()
     messages.success(request, "메모가 삭제되었습니다.")
     return redirect("memo:list")
+
+
+@require_POST
+@login_required
+def memo_pin_toggle(request, memo_id):
+    memo = get_object_or_404(Memo, id=memo_id, author=request.user)
+    memo.is_pinned = not memo.is_pinned
+    memo.save(update_fields=["is_pinned"])
+    next_url = request.POST.get("next", "")
+    return redirect(next_url if next_url else "memo:list")

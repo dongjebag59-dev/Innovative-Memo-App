@@ -1,23 +1,26 @@
 from django import forms
 from .models import Memo
 
+
 class MemoForm(forms.ModelForm):
     class Meta:
         model = Memo
-        # 사용자가 입력할 필드만 지정 (작성자, 날짜, 키워드는 자동 처리)
-        fields = ["category", "content"]
-        
-        # 화면에 보여질 이름(레이블) 설정
+        fields = ["category", "content", "user_tags", "is_pinned", "is_secret"]
         labels = {
-            'content': '메모 내용',
+            "content": "메모 내용",
+            "user_tags": "태그",
+            "is_pinned": "상단 고정",
+            "is_secret": "내용 잠금",
         }
-        
-        # HTML 태그에 디자인(CSS 클래스)이나 속성을 추가
         widgets = {
-            'content': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': '오늘의 생각이나 기록하고 싶은 내용을 자유롭게 작성해주세요...',
-                'rows': 10,
-                'style': 'resize: vertical;'
+            "content": forms.Textarea(attrs={
+                "class": "form-control",
+                "placeholder": "오늘의 생각이나 기록하고 싶은 내용을 자유롭게 작성해주세요...",
+                "rows": 10,
+                "style": "resize: vertical;",
+            }),
+            "user_tags": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "#비밀번호 #은행 #카카오  (스페이스로 구분)",
             }),
         }

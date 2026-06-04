@@ -26,6 +26,12 @@ db/
 # OS
 .DS_Store
 
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+
 # Editors / IDEs
 .vscode/
 .idea/

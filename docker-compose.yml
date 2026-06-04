@@ -18,7 +18,9 @@ services:
 
   # ── 앱 서버 (Django + Gunicorn) ───────────────────────────
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.compose
     restart: always
     environment:
       SECRET_KEY: ${SECRET_KEY}

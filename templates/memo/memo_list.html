@@ -176,6 +176,10 @@
     </div>
 
     <!-- 리스트 -->
+    <div style="color:#888;font-size:13px;margin-bottom:10px;">
+      총 {{ page_obj.paginator.count }}개의 메모
+    </div>
+
     {% for memo in memos %}
       <div class="memo-card">
 
@@ -210,6 +214,30 @@
     {% empty %}
       <div class="memo-card">아직 메모가 없어요. + 새 메모 작성해보자!</div>
     {% endfor %}
+
+    <!-- 페이지네이션 -->
+    {% if page_obj.has_other_pages %}
+    <div style="display:flex;justify-content:center;gap:6px;margin-top:20px;flex-wrap:wrap;">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&sort={{ sort }}&category={{ selected_category }}"
+           style="padding:8px 14px;border-radius:10px;border:1px solid #ddd;text-decoration:none;color:#555;">‹ 이전</a>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <span style="padding:8px 14px;border-radius:10px;background:#8fa18f;color:#fff;font-weight:700;">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?page={{ num }}&q={{ q }}&sort={{ sort }}&category={{ selected_category }}"
+             style="padding:8px 14px;border-radius:10px;border:1px solid #ddd;text-decoration:none;color:#555;">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&sort={{ sort }}&category={{ selected_category }}"
+           style="padding:8px 14px;border-radius:10px;border:1px solid #ddd;text-decoration:none;color:#555;">다음 ›</a>
+      {% endif %}
+    </div>
+    {% endif %}
 
   </div>
 </body>

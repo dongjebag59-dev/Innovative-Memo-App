@@ -1,6 +1,7 @@
 # memo/views.py
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
@@ -18,7 +19,7 @@ def memo_list(request):
     memos = Memo.objects.filter(author=request.user)
 
     if q:
-        memos = memos.filter(Q(content__icontains=q))
+        memos = memos.filter(Q(content__icontains=q) | Q(keywords__icontains=q))
 
     if selected_category and selected_category.isdigit():
         memos = memos.filter(category_id=int(selected_category))
@@ -30,8 +31,12 @@ def memo_list(request):
 
     categories = Category.objects.order_by("order")
 
+    paginator = Paginator(memos, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     context = {
-        "memos": memos,
+        "page_obj": page_obj,
+        "memos": page_obj,
         "categories": categories,
         "selected_category": selected_category,
         "q": q,

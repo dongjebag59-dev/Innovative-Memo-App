@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  # ── 1단계: 테스트 ──────────────────────────────────────────
+  # ── 테스트 (Railway 배포 전 검증) ──────────────────────────
   test:
     runs-on: ubuntu-latest
     steps:
@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: 패키지 설치
         run: pip install -r requirements.txt
@@ -24,40 +24,6 @@ jobs:
           SECRET_KEY: ci-test-secret-key-not-for-production
           DEBUG: "True"
 
-  # ── 2단계: EC2 배포 ────────────────────────────────────────
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: EC2 서버에 배포
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -e
-            cd /home/ubuntu/app
-
-            echo "▶ 최신 코드 받기..."
-            git pull origin main
-
-            echo "▶ .env 파일 생성..."
-            cat > .env << 'ENVEOF'
-            SECRET_KEY=${{ secrets.SECRET_KEY }}
-            DEBUG=False
-            ALLOWED_HOSTS=${{ secrets.EC2_HOST }}
-            CSRF_TRUSTED_ORIGINS=http://${{ secrets.EC2_HOST }}
-            POSTGRES_DB=focusmemo
-            POSTGRES_USER=focususer
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            ENVEOF
-
-            echo "▶ Docker 이미지 빌드 및 컨테이너 시작..."
-            docker-compose down
-            docker-compose build --no-cache
-            docker-compose up -d
-
-            echo "▶ 배포 완료!"
-            docker-compose ps
+  # ── Railway 자동 배포 안내 ──────────────────────────────────
+  # Railway는 GitHub push를 자동 감지하여 배포합니다.
+  # 별도의 deploy job 불필요.

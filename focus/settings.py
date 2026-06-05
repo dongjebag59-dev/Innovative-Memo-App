@@ -93,7 +93,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Static files
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 LOGIN_REDIRECT_URL = '/memo/'
 LOGIN_URL = '/accounts/login/'

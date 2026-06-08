@@ -37,12 +37,26 @@
 </div>
 
 <!-- 결과 수 -->
-<div style="color:var(--muted);font-size:13px;margin-bottom:14px;">
+<div style="color:var(--muted);font-size:13px;margin-bottom:{% if synonym_expansions %}6px{% else %}14px{% endif %};">
   총 {{ page_obj.paginator.count }}개의 메모
   {% if q %}
     · <span style="color:var(--brand-d);font-weight:700;">"{{ q }}" 검색 결과</span>
   {% endif %}
 </div>
+
+{% if synonym_expansions %}
+<div style="font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+  <span>💡 동의어 확장:</span>
+  {% for word, extras in synonym_expansions.items %}
+    <span>
+      <span style="color:var(--brand-d);font-weight:700;">{{ word }}</span>
+      →
+      {% for e in extras %}<span style="background:var(--brand-light);border-radius:6px;padding:1px 6px;color:#4d5a43;">{{ e }}</span>{% if not forloop.last %} {% endif %}{% endfor %}
+    </span>
+    {% if not forloop.last %}<span style="color:var(--line);">|</span>{% endif %}
+  {% endfor %}
+</div>
+{% endif %}
 
 <!-- 메모 카드 목록 -->
 {% for memo in memos %}

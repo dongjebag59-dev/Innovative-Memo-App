@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import MemoForm
@@ -18,16 +19,24 @@ def memo_list(request):
 
     memos = Memo.objects.filter(author=request.user)
 
+    synonym_expansions = {}
     if q:
-        terms = expand_query(q)
-        q_filter = Q()
-        for term in terms:
-            q_filter |= (
-                Q(content__icontains=term) |
-                Q(keywords__icontains=term) |
-                Q(user_tags__icontains=term)
-            )
-        memos = memos.filter(q_filter)
+        words = q.split()
+        combined_filter = Q()
+        for word in words:
+            terms = expand_query(word)
+            extra = [t for t in terms if t.lower() != word.lower()]
+            if extra:
+                synonym_expansions[word] = extra
+            word_filter = Q()
+            for term in terms:
+                word_filter |= (
+                    Q(content__icontains=term) |
+                    Q(keywords__icontains=term) |
+                    Q(user_tags__icontains=term)
+                )
+            combined_filter &= word_filter
+        memos = memos.filter(combined_filter)
 
     if selected_category and selected_category.isdigit():
         memos = memos.filter(category_id=int(selected_category))
@@ -49,6 +58,7 @@ def memo_list(request):
         "selected_category": selected_category,
         "q": q,
         "sort": sort,
+        "synonym_expansions": synonym_expansions,
     }
     return render(request, "memo/memo_list.html", context)
 
@@ -68,7 +78,7 @@ def memo_create(request):
             memo.author = request.user
             memo.save()
             messages.success(request, "메모가 저장되었습니다!")
-            return redirect("memo:list")
+            return redirect("memo:detail", memo_id=memo.id)
         messages.error(request, "입력 내용을 확인해 주세요.")
     else:
         form = MemoForm()
@@ -119,4 +129,5 @@ def memo_pin_toggle(request, memo_id):
     memo.is_pinned = not memo.is_pinned
     memo.save(update_fields=["is_pinned"])
     next_url = request.POST.get("next", "")
-    return redirect(next_url if next_url else "memo:list")
+    safe = url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()})
+    return redirect(next_url if safe else "memo:list")

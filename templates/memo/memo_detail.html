@@ -16,7 +16,7 @@
     <span class="badge badge-cat">{{ memo.category.icon|default:"📌" }} {{ memo.category.name }}</span>
   {% endif %}
   <span style="color:var(--muted);font-size:13px;">작성 {{ memo.created_at|date:"Y-m-d H:i" }}</span>
-  {% if memo.updated_at != memo.created_at %}
+  {% if memo.updated_at|date:"YmdHi" != memo.created_at|date:"YmdHi" %}
     <span style="color:var(--muted);font-size:13px;">· 수정 {{ memo.updated_at|date:"Y-m-d H:i" }}</span>
   {% endif %}
 </div>
@@ -58,11 +58,27 @@
     </button>
   </form>
 
-  <form method="post" action="{% url 'memo:delete' memo.id %}" style="margin:0;margin-left:auto;">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger"
-            onclick="return confirm('정말 삭제할까요?');">삭제</button>
-  </form>
+  <button type="button" class="btn btn-danger" style="margin-left:auto;"
+          onclick="document.getElementById('delete-modal').style.display='flex'">삭제</button>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div id="delete-modal"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:16px;"
+     onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:var(--r);padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+    <div style="font-size:36px;margin-bottom:14px;">🗑️</div>
+    <div style="font-weight:800;font-size:17px;margin-bottom:8px;">메모를 삭제할까요?</div>
+    <div style="color:var(--muted);font-size:14px;margin-bottom:28px;">삭제된 메모는 복구할 수 없습니다.</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="btn btn-ghost"
+              onclick="document.getElementById('delete-modal').style.display='none'">취소</button>
+      <form method="post" action="{% url 'memo:delete' memo.id %}" style="margin:0">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">삭제 확인</button>
+      </form>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

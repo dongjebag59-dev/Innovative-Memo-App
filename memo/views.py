@@ -73,6 +73,7 @@ def memo_detail(request, memo_id):
 def memo_create(request):
     if request.method == "POST":
         form = MemoForm(request.POST)
+        selected_category_id = request.POST.get("category", "")
         if form.is_valid():
             memo = form.save(commit=False)
             memo.author = request.user
@@ -82,12 +83,14 @@ def memo_create(request):
         messages.error(request, "입력 내용을 확인해 주세요.")
     else:
         form = MemoForm()
+        selected_category_id = ""
 
     categories = Category.objects.order_by("order")
     return render(request, "memo/memo_form.html", {
         "form": form,
         "is_update": False,
         "categories": categories,
+        "selected_category_id": selected_category_id,
     })
 
 
@@ -97,6 +100,7 @@ def memo_update(request, memo_id):
 
     if request.method == "POST":
         form = MemoForm(request.POST, instance=memo)
+        selected_category_id = request.POST.get("category", "")
         if form.is_valid():
             form.save()
             messages.success(request, "메모가 수정되었습니다.")
@@ -104,12 +108,15 @@ def memo_update(request, memo_id):
         messages.error(request, "입력 내용을 확인해 주세요.")
     else:
         form = MemoForm(instance=memo)
+        selected_category_id = str(memo.category_id) if memo.category_id else ""
 
     categories = Category.objects.order_by("order")
     return render(request, "memo/memo_form.html", {
         "form": form,
         "is_update": True,
         "categories": categories,
+        "selected_category_id": selected_category_id,
+        "memo": memo,
     })
 
 

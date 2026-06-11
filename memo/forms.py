@@ -24,3 +24,14 @@ class MemoForm(forms.ModelForm):
                 "placeholder": "#비밀번호 #은행 #카카오  (스페이스로 구분)",
             }),
         }
+
+    def clean_user_tags(self):
+        raw = self.cleaned_data.get("user_tags", "").strip()
+        if not raw:
+            return ""
+        normalized = []
+        for word in raw.split():
+            word = word.lstrip("#")
+            if word:
+                normalized.append(f"#{word}")
+        return " ".join(normalized)

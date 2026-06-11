@@ -17,9 +17,12 @@ def highlight(text, query, autoescape=True):
     if not query or not text:
         return conditional_escape(text) if autoescape else text
     escaped = conditional_escape(str(text))
-    pattern = re.compile(re.escape(str(query)), re.IGNORECASE)
-    result = pattern.sub(
-        lambda m: f'<mark>{conditional_escape(m.group())}</mark>',
-        escaped,
-    )
-    return mark_safe(result)
+    for word in str(query).split():
+        if not word:
+            continue
+        pattern = re.compile(re.escape(word), re.IGNORECASE)
+        escaped = pattern.sub(
+            lambda m: f'<mark>{conditional_escape(m.group())}</mark>',
+            escaped,
+        )
+    return mark_safe(escaped)

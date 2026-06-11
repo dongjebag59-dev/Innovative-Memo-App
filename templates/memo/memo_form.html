@@ -51,7 +51,7 @@
       {% for category in categories %}
       <label class="cat-item">
         <input type="radio" name="category" value="{{ category.id }}"
-               {% if form.instance.category_id == category.id %}checked{% endif %}>
+               {% if selected_category_id == category.id|stringformat:"s" %}checked{% endif %}>
         <span class="icon">{{ category.icon }}</span>
         <span class="name">{{ category.name }}</span>
       </label>
@@ -97,7 +97,11 @@
     <button type="submit" class="btn btn-primary" style="padding:13px 28px;">
       {% if is_update %}수정 완료{% else %}메모 저장{% endif %}
     </button>
-    <a href="{% url 'memo:list' %}" class="btn btn-ghost">취소</a>
+    {% if is_update %}
+      <a href="{% url 'memo:detail' memo.id %}" class="btn btn-ghost">취소</a>
+    {% else %}
+      <a href="{% url 'memo:list' %}" class="btn btn-ghost">취소</a>
+    {% endif %}
   </div>
 </form>
 {% endblock %}

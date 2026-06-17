@@ -72,12 +72,12 @@ class Memo(models.Model):
     is_secret = models.BooleanField(default=False, verbose_name="내용 잠금")
 
     def save(self, *args, **kwargs):
-        if self.content:
-            kws = extract_keywords(self.content, top_n=5)
-            self.keywords = ",".join(kws)   # DB에는 "키워드1,키워드2,키워드3" 형태로 저장
-        else:
-            self.keywords = ""
-
+        if kwargs.get("update_fields") is None:
+            if self.content:
+                kws = extract_keywords(self.content, top_n=5)
+                self.keywords = ",".join(kws)
+            else:
+                self.keywords = ""
         super().save(*args, **kwargs)
 
     @property

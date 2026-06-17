@@ -3,6 +3,14 @@
 
 {% block title %}메모 목록 | Focus Memo{% endblock %}
 
+{% block extra_css %}
+<style>
+  .card-memo { cursor: pointer; transition: box-shadow .15s, transform .12s; }
+  .card-memo:hover { box-shadow: 0 8px 28px rgba(0,0,0,.09); transform: translateY(-2px); }
+  .card-memo:active { transform: translateY(0); }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <!-- 검색 바 -->
@@ -22,13 +30,13 @@
 
 <!-- 카테고리 필터 -->
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
-  <a href="{% url 'memo:list' %}?q={{ q }}&sort={{ sort }}"
+  <a href="{% url 'memo:list' %}?q={{ q|urlencode }}&sort={{ sort }}"
      class="badge badge-cat"
      style="padding:7px 14px;text-decoration:none;{% if not selected_category %}background:var(--brand);color:#fff;border-color:var(--brand);{% endif %}">
     전체
   </a>
   {% for c in categories %}
-    <a href="{% url 'memo:list' %}?category={{ c.id }}&q={{ q }}&sort={{ sort }}"
+    <a href="{% url 'memo:list' %}?category={{ c.id }}&q={{ q|urlencode }}&sort={{ sort }}"
        class="badge badge-cat"
        style="padding:7px 14px;text-decoration:none;{% if selected_category == c.id|stringformat:'s' %}background:var(--brand);color:#fff;border-color:var(--brand);{% endif %}">
       {{ c.icon|default:"📌" }} {{ c.name }}
@@ -60,7 +68,11 @@
 
 <!-- 메모 카드 목록 -->
 {% for memo in memos %}
-<div class="card {% if memo.is_pinned %}card-pinned{% endif %}" style="margin-bottom:14px;">
+<div class="card card-memo {% if memo.is_pinned %}card-pinned{% endif %}"
+     style="margin-bottom:14px;"
+     onclick="location.href='{% url 'memo:detail' memo.id %}'"
+     role="link" tabindex="0"
+     onkeydown="if(event.key==='Enter')location.href='{% url 'memo:detail' memo.id %}'">
 
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -71,8 +83,7 @@
       {% endif %}
       <span style="color:var(--muted);font-size:13px;">{{ memo.created_at|date:"Y-m-d" }}</span>
     </div>
-    <a href="{% url 'memo:detail' memo.id %}"
-       style="color:var(--muted);text-decoration:none;font-size:20px;font-weight:800;line-height:1;">→</a>
+    <span style="color:var(--muted);font-size:20px;font-weight:800;line-height:1;">→</span>
   </div>
 
   <div style="margin-top:10px;color:#3e3e3e;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:3em;">
@@ -100,6 +111,7 @@
   {% if q %}
     <div style="font-size:36px;margin-bottom:12px;">🔍</div>
     <div>"{{ q }}"에 해당하는 메모가 없습니다.</div>
+    <a href="{% url 'memo:list' %}" class="btn btn-ghost" style="margin-top:16px;display:inline-flex;">× 검색어 지우기</a>
   {% else %}
     <div style="font-size:36px;margin-bottom:12px;">📝</div>
     <div>아직 메모가 없어요.</div>
@@ -112,20 +124,24 @@
 {% if page_obj.has_other_pages %}
 <div style="display:flex;justify-content:center;gap:6px;margin-top:24px;flex-wrap:wrap;">
   {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&sort={{ sort }}&category={{ selected_category }}"
+    <a href="?page=1&q={{ q|urlencode }}&sort={{ sort }}&category={{ selected_category }}"
+       class="btn btn-ghost btn-sm">« 처음</a>
+    <a href="?page={{ page_obj.previous_page_number }}&q={{ q|urlencode }}&sort={{ sort }}&category={{ selected_category }}"
        class="btn btn-ghost btn-sm">‹ 이전</a>
   {% endif %}
   {% for num in page_obj.paginator.page_range %}
     {% if page_obj.number == num %}
       <span class="btn btn-primary btn-sm">{{ num }}</span>
     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-      <a href="?page={{ num }}&q={{ q }}&sort={{ sort }}&category={{ selected_category }}"
+      <a href="?page={{ num }}&q={{ q|urlencode }}&sort={{ sort }}&category={{ selected_category }}"
          class="btn btn-ghost btn-sm">{{ num }}</a>
     {% endif %}
   {% endfor %}
   {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&sort={{ sort }}&category={{ selected_category }}"
+    <a href="?page={{ page_obj.next_page_number }}&q={{ q|urlencode }}&sort={{ sort }}&category={{ selected_category }}"
        class="btn btn-ghost btn-sm">다음 ›</a>
+    <a href="?page={{ page_obj.paginator.num_pages }}&q={{ q|urlencode }}&sort={{ sort }}&category={{ selected_category }}"
+       class="btn btn-ghost btn-sm">마지막 »</a>
   {% endif %}
 </div>
 {% endif %}

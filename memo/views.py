@@ -17,7 +17,7 @@ def memo_list(request):
     sort = request.GET.get("sort", "latest")
     selected_category = request.GET.get("category", "").strip()
 
-    memos = Memo.objects.filter(author=request.user)
+    memos = Memo.objects.filter(author=request.user).select_related("category")
 
     synonym_expansions = {}
     if q:

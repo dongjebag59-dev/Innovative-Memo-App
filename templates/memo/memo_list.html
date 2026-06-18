@@ -82,6 +82,9 @@
         <span class="badge badge-cat">{{ memo.category.icon|default:"📌" }} {{ memo.category.name }}</span>
       {% endif %}
       <span style="color:var(--muted);font-size:13px;">{{ memo.created_at|date:"Y-m-d" }}</span>
+      {% if memo.updated_at|date:"YmdHi" != memo.created_at|date:"YmdHi" %}
+        <span style="color:var(--muted);font-size:12px;">· 수정됨</span>
+      {% endif %}
     </div>
     <span style="color:var(--muted);font-size:20px;font-weight:800;line-height:1;">→</span>
   </div>
@@ -146,4 +149,20 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('keydown', function (e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+  if (e.key === '/' || e.key === 'ㅡ') {
+    e.preventDefault();
+    var search = document.querySelector('input[name="q"]');
+    if (search) { search.focus(); search.select(); }
+  }
+  if (e.key === 'n' || e.key === 'ㅜ') {
+    window.location.href = '{% url "memo:create" %}';
+  }
+});
+</script>
 {% endblock %}

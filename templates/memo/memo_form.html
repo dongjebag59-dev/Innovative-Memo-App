@@ -105,3 +105,22 @@
   </div>
 </form>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var ta = document.querySelector('textarea[name="content"]');
+    if (!ta) return;
+    ta.style.overflow = 'hidden';
+    ta.style.resize = 'none';
+    autoResize(ta);
+    ta.addEventListener('input', function () { autoResize(ta); });
+  });
+})();
+</script>
+{% endblock %}

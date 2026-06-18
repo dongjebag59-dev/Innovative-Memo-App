@@ -39,7 +39,7 @@
     <a href="{% url 'memo:list' %}?category={{ c.id }}&q={{ q|urlencode }}&sort={{ sort }}"
        class="badge badge-cat"
        style="padding:7px 14px;text-decoration:none;{% if selected_category == c.id|stringformat:'s' %}background:var(--brand);color:#fff;border-color:var(--brand);{% endif %}">
-      {{ c.icon|default:"📌" }} {{ c.name }}
+      {{ c.icon|default:"📌" }} {{ c.name }}{% if c.memo_count %} <span style="font-size:11px;opacity:.65;">({{ c.memo_count }})</span>{% endif %}
     </a>
   {% endfor %}
 </div>
@@ -99,8 +99,8 @@
   {% with auto=memo.keywords_list user=memo.user_tags_list %}
     {% if auto or user %}
     <div class="tags">
-      {% for kw in auto %}<span class="tag tag-auto">#{{ kw }}</span>{% endfor %}
-      {% for t in user %}<span class="tag tag-user">#{{ t }}</span>{% endfor %}
+      {% for kw in auto %}<a href="{% url 'memo:list' %}?q={{ kw|urlencode }}" class="tag tag-auto" style="text-decoration:none;" onclick="event.stopPropagation()">#{{ kw }}</a>{% endfor %}
+      {% for t in user %}<a href="{% url 'memo:list' %}?q={{ t|urlencode }}" class="tag tag-user" style="text-decoration:none;" onclick="event.stopPropagation()">#{{ t }}</a>{% endfor %}
     </div>
     {% endif %}
   {% endwith %}

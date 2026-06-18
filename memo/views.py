@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
@@ -46,7 +46,9 @@ def memo_list(request):
     else:
         memos = memos.order_by("-is_pinned", "-created_at")
 
-    categories = Category.objects.order_by("order")
+    categories = Category.objects.order_by("order").annotate(
+        memo_count=Count("memo", filter=Q(memo__author=request.user))
+    )
 
     paginator = Paginator(memos, 10)
     page_obj = paginator.get_page(request.GET.get("page"))

@@ -125,6 +125,7 @@
     <div class="header-right">
       <span class="username">{{ user.username }} 님</span>
       <a href="{% url 'memo:create' %}" class="btn btn-primary btn-sm">+ 새 메모</a>
+      <a href="{% url 'password_change' %}" class="btn btn-ghost btn-sm" title="비밀번호 변경">⚙</a>
       <form method="post" action="{% url 'logout' %}" style="margin:0">
         {% csrf_token %}
         <button class="btn btn-ghost btn-sm" type="submit">로그아웃</button>

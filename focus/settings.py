@@ -13,12 +13,14 @@ if _env_path.exists():
             _k, _v = _line.split("=", 1)
             os.environ.setdefault(_k.strip(), _v.strip())
 
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "django-insecure-ha*s4sp@7gztddv(mn9uzk*3cb(itug*aaw*xmye@(4p^m7f*p",
-)
-
 DEBUG = os.environ.get("DEBUG", "True") == "True"
+
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-ha*s4sp@7gztddv(mn9uzk*3cb(itug*aaw*xmye@(4p^m7f*p"
+    else:
+        raise ValueError("환경변수 SECRET_KEY가 설정되지 않았습니다. 프로덕션 배포 전 반드시 설정하세요.")
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost 127.0.0.1").split()
 

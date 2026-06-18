@@ -40,8 +40,8 @@
 {% with auto=memo.keywords_list user=memo.user_tags_list %}
   {% if auto or user %}
   <div class="tags" style="margin-bottom:24px;">
-    {% for kw in auto %}<span class="tag tag-auto">#{{ kw }}</span>{% endfor %}
-    {% for t in user %}<span class="tag tag-user">#{{ t }}</span>{% endfor %}
+    {% for kw in auto %}<a href="{% url 'memo:list' %}?q={{ kw|urlencode }}" class="tag tag-auto" style="text-decoration:none;">#{{ kw }}</a>{% endfor %}
+    {% for t in user %}<a href="{% url 'memo:list' %}?q={{ t|urlencode }}" class="tag tag-user" style="text-decoration:none;">#{{ t }}</a>{% endfor %}
   </div>
   {% endif %}
 {% endwith %}

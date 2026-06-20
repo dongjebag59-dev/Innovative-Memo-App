@@ -1,7 +1,10 @@
+import datetime
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
@@ -122,8 +125,8 @@ def memo_update(request, memo_id):
     })
 
 
-@require_POST
 @login_required
+@require_POST
 def memo_delete(request, memo_id):
     memo = get_object_or_404(Memo, id=memo_id, author=request.user)
     memo.delete()
@@ -131,8 +134,45 @@ def memo_delete(request, memo_id):
     return redirect("memo:list")
 
 
-@require_POST
 @login_required
+def memo_export(request):
+    memos = (
+        Memo.objects.filter(author=request.user)
+        .select_related("category")
+        .order_by("-created_at")
+    )
+    lines = []
+    lines.append(f"Focus Memo 내보내기\n")
+    lines.append(f"사용자: {request.user.username}\n")
+    lines.append(f"날짜: {datetime.date.today()}\n")
+    lines.append(f"총 메모 수: {memos.count()}개\n")
+    lines.append("=" * 60 + "\n\n")
+    for memo in memos:
+        cat = memo.category.name if memo.category else "미분류"
+        flags = []
+        if memo.is_pinned:
+            flags.append("고정")
+        if memo.is_secret:
+            flags.append("잠금")
+        flag_str = f" [{', '.join(flags)}]" if flags else ""
+        lines.append(f"[{memo.created_at.strftime('%Y-%m-%d %H:%M')}] {cat}{flag_str}\n")
+        if memo.keywords_list:
+            lines.append(f"키워드: {', '.join(memo.keywords_list)}\n")
+        if memo.user_tags_list:
+            lines.append(f"태그: {' '.join('#' + t for t in memo.user_tags_list)}\n")
+        lines.append("\n")
+        lines.append(memo.content)
+        lines.append("\n\n" + "-" * 40 + "\n\n")
+
+    content = "".join(lines)
+    filename = f"focusmemo_{request.user.username}_{datetime.date.today()}.txt"
+    response = HttpResponse(content, content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+@require_POST
 def memo_pin_toggle(request, memo_id):
     memo = get_object_or_404(Memo, id=memo_id, author=request.user)
     memo.is_pinned = not memo.is_pinned

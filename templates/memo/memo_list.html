@@ -28,6 +28,11 @@
   <button type="submit" class="btn btn-primary">검색</button>
 </form>
 
+<!-- 내보내기 -->
+<div style="text-align:right;margin-bottom:10px;">
+  <a href="{% url 'memo:export' %}" class="btn btn-ghost btn-sm" title="전체 메모를 텍스트 파일로 다운로드">⬇ 내보내기</a>
+</div>
+
 <!-- 카테고리 필터 -->
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
   <a href="{% url 'memo:list' %}?q={{ q|urlencode }}&sort={{ sort }}"

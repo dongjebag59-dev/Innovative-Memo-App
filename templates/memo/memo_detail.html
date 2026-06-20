@@ -5,7 +5,8 @@
 {% block content %}
 
 <div style="margin-bottom:18px;">
-  <a href="{% url 'memo:list' %}" style="color:var(--muted);text-decoration:none;font-size:14px;">← 목록으로</a>
+  <a href="{% url 'memo:list' %}" onclick="if(document.referrer)event.preventDefault(),history.back();"
+     style="color:var(--muted);text-decoration:none;font-size:14px;">← 목록으로</a>
 </div>
 
 <!-- 메타 정보 -->

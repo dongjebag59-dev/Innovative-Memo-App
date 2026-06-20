@@ -10,4 +10,5 @@ urlpatterns = [
     path("<int:memo_id>/edit/", views.memo_update, name="update"),
     path("<int:memo_id>/delete/", views.memo_delete, name="delete"),
     path("<int:memo_id>/pin/", views.memo_pin_toggle, name="pin_toggle"),
+    path("export/", views.memo_export, name="export"),
 ]

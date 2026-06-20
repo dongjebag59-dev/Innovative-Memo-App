@@ -63,9 +63,14 @@
   <div class="form-group">
     <label class="form-label">메모 내용 <span style="color:var(--danger)">*</span></label>
     {{ form.content }}
-    {% if form.content.errors %}
-      <div style="color:var(--danger);font-size:13px;margin-top:6px;">{{ form.content.errors.0 }}</div>
-    {% endif %}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">
+      {% if form.content.errors %}
+        <div style="color:var(--danger);font-size:13px;">{{ form.content.errors.0 }}</div>
+      {% else %}
+        <div></div>
+      {% endif %}
+      <span id="char-count" style="font-size:12px;color:var(--muted);">0자</span>
+    </div>
   </div>
 
   <!-- 태그 -->
@@ -119,7 +124,12 @@
     ta.style.overflow = 'hidden';
     ta.style.resize = 'none';
     autoResize(ta);
-    ta.addEventListener('input', function () { autoResize(ta); });
+    var counter = document.getElementById('char-count');
+    function updateCount() {
+      if (counter) counter.textContent = ta.value.length + '자';
+    }
+    updateCount();
+    ta.addEventListener('input', function () { autoResize(ta); updateCount(); });
   });
 })();
 </script>

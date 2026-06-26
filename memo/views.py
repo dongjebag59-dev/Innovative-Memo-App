@@ -1,4 +1,5 @@
 import datetime
+import urllib.parse
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -6,6 +7,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
@@ -56,6 +58,8 @@ def memo_list(request):
     paginator = Paginator(memos, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
 
+    request.session["last_list_url"] = request.get_full_path()
+
     context = {
         "page_obj": page_obj,
         "memos": page_obj,
@@ -71,7 +75,8 @@ def memo_list(request):
 @login_required
 def memo_detail(request, memo_id):
     memo = get_object_or_404(Memo, id=memo_id, author=request.user)
-    return render(request, "memo/memo_detail.html", {"memo": memo})
+    last_list_url = request.session.get("last_list_url", reverse("memo:list"))
+    return render(request, "memo/memo_detail.html", {"memo": memo, "last_list_url": last_list_url})
 
 
 @login_required
@@ -161,13 +166,16 @@ def memo_export(request):
         if memo.user_tags_list:
             lines.append(f"태그: {' '.join('#' + t for t in memo.user_tags_list)}\n")
         lines.append("\n")
-        lines.append(memo.content)
+        lines.append("(🔒 잠금 처리됨)" if memo.is_secret else memo.content)
         lines.append("\n\n" + "-" * 40 + "\n\n")
 
     content = "".join(lines)
     filename = f"focusmemo_{request.user.username}_{datetime.date.today()}.txt"
+    encoded_filename = urllib.parse.quote(filename, safe="")
     response = HttpResponse(content, content_type="text/plain; charset=utf-8")
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response["Content-Disposition"] = (
+        f'attachment; filename="focusmemo.txt"; filename*=UTF-8\'\'{encoded_filename}'
+    )
     return response
 
 

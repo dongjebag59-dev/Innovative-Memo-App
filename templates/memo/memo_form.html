@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if is_update %}메모 수정{% else %}새 메모 작성{% endif %} | Focus Memo{% endblock %}
+{% block title %}{% if is_update %}{{ memo.content|truncatechars:20 }} 수정{% else %}새 메모 작성{% endif %} | Focus Memo{% endblock %}
 
 {% block extra_css %}
 <style>
